@@ -20,6 +20,12 @@
 python3 ./.trellis/scripts/init_developer.py <你的名字>
 ```
 
+## 项目定位与托管决策
+
+- **托管**：GitHub 官方（用户在 GitHub 上创建仓库后推送，未创建前不要自行建仓库）
+- **开源**：MIT 协议，开源 + 捐赠（GitHub Sponsors）/ 未来付费功能（云同步等）方向
+- **API Key**：智谱 GLM-4V-Flash 由用户自行配置在 `local.properties`（已 gitignore）
+
 ## 构建与运行
 
 - 构建：`gradle assembleDebug`（无 gradlew 时用本地 Gradle 8.13，JDK 用 `D:\dev-envirment\jdk17`）
