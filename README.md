@@ -87,3 +87,7 @@ app/src/main/java/com/example/homestorage/
 ## 许可证
 
 [MIT](./LICENSE)
+
+## 支持项目
+
+如果这个应用帮到了你，欢迎在 [爱发电](https://afdian.com/a/LinZuo) 请作者喝杯咖啡 ☕ 你的支持是持续维护和开发新功能（云同步、多设备等）的最大动力。
