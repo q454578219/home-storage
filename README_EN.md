@@ -88,6 +88,12 @@ app/src/main/java/com/example/homestorage/
 
 [MIT](./LICENSE)
 
+## Feature Ideas
+
+Have a good idea? We'd love to hear it!
+
+If you feel this app is missing something, [open a feature request on Issues](https://github.com/q454578219/home-storage/issues/new?title=Feature%20idea%3A&labels=idea) and describe your use case in one sentence (e.g. "expiry reminders for food items"). I pick valuable, popular ideas and implement them — **your idea could be the next release**.
+
 ## Support
 
 If this app helps you, feel free to [buy the author a coffee on 爱发电](https://afdian.com/a/LinZuo) ☕ Your support keeps maintenance and new features (cloud sync, multi-device, etc.) going.

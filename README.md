@@ -90,6 +90,12 @@ app/src/main/java/com/example/homestorage/
 
 [MIT](./LICENSE)
 
+## 功能建议
+
+有好点子？欢迎提出！
+
+如果你觉得这个 App 还差点什么，请到 [Issues 提交功能建议](https://github.com/q454578219/home-storage/issues/new?title=功能建议%3A&labels=idea)，一句话描述使用场景即可（比如"想给食品设保质期提醒"）。我会挑选有价值、受欢迎的想法去实现——**你的想法可能就是下一个版本**。
+
 ## 支持项目
 
 如果这个应用帮到了你，欢迎在 [爱发电](https://afdian.com/a/LinZuo) 请作者喝杯咖啡 ☕ 你的支持是持续维护和开发新功能（云同步、多设备等）的最大动力。
