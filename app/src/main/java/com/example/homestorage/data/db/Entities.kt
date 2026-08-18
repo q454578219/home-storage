@@ -13,6 +13,18 @@ data class CategoryEntity(
     val isPreset: Boolean = false,
 )
 
+/** 户型图实体：一张户型图 = 一个楼层/区域的空间地图，点击位置挂载柜子 */
+@Entity(tableName = "floor_plans")
+data class FloorPlanEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    /** 户型图名称，如"一层" */
+    val name: String,
+    /** 户型图图片相对路径（ImageStore 内） */
+    val imagePath: String,
+    /** 创建时间戳（毫秒） */
+    val createdAt: Long = System.currentTimeMillis(),
+)
+
 /** 柜子实体：一个储物柜/储物空间 */
 @Entity(tableName = "cabinets")
 data class CabinetEntity(
@@ -25,6 +37,12 @@ data class CabinetEntity(
     val categoryId: Long? = null,
     /** 是否已移入回收站（软删除） */
     val isDeleted: Boolean = false,
+    /** 所属户型图 id（null = 未挂载到户型图） */
+    val floorPlanId: Long? = null,
+    /** 柜子在户型图上的归一化横坐标 0~1 */
+    val x: Float = 0.5f,
+    /** 柜子在户型图上的归一化纵坐标 0~1 */
+    val y: Float = 0.5f,
     /** 创建时间戳（毫秒） */
     val createdAt: Long = System.currentTimeMillis(),
 )

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Restore
@@ -103,6 +104,7 @@ fun HomeScreen(
     onOpenCabinet: (Long) -> Unit,
     onOpenItem: (Long, Long) -> Unit,
     onOpenCreateCabinet: () -> Unit,
+    onOpenFloorPlans: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val cabinets by viewModel.cabinets.collectAsState()
@@ -211,6 +213,9 @@ fun HomeScreen(
                 }
                 IconButton(onClick = { showRecycleBin = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "回收站")
+                }
+                IconButton(onClick = onOpenFloorPlans) {
+                    Icon(Icons.Default.Map, contentDescription = "户型图")
                 }
             }
 

@@ -98,6 +98,87 @@ interface CabinetDao {
         """
     )
     fun observeDeleted(): Flow<List<CabinetWithCategory>>
+
+    /** 查询某户型图上的全部柜子（含封面缩略图，户型图详情标记用） */
+    @Query(
+        """
+        SELECT cabinets.id AS id, cabinets.name AS name,
+               cabinets.coverImagePath AS coverImagePath,
+               cabinets.x AS x, cabinets.y AS y
+        FROM cabinets
+        WHERE cabinets.floorPlanId = :planId
+          AND cabinets.isDeleted = 0
+        ORDER BY cabinets.createdAt ASC
+        """
+    )
+    fun observeByFloorPlan(planId: Long): Flow<List<CabinetOnFloorPlan>>
+
+    /**
+     * 更新柜子的户型图挂载位置（挂载/移动标记）
+     *
+     * @param cabinetId 柜子 id
+     * @param planId 户型图 id
+     * @param x 归一化横坐标 0~1
+     * @param y 归一化纵坐标 0~1
+     */
+    @Query("UPDATE cabinets SET floorPlanId = :planId, x = :x, y = :y WHERE id = :cabinetId")
+    suspend fun attachToFloorPlan(cabinetId: Long, planId: Long, x: Float, y: Float)
+
+    /** 解除柜子的户型图挂载（删除户型图时调用，柜子本身保留） */
+    @Query("UPDATE cabinets SET floorPlanId = NULL WHERE floorPlanId = :planId")
+    suspend fun clearFloorPlan(planId: Long)
+
+    /** 查询未挂载户型图且未删除的柜子（挂载弹窗选择列表用） */
+    @Query(
+        """
+        SELECT cabinets.*, categories.name AS categoryName,
+               (SELECT COUNT(*) FROM items
+                JOIN spots ON items.spotId = spots.id
+                WHERE spots.cabinetId = cabinets.id) AS itemCount
+        FROM cabinets LEFT JOIN categories ON cabinets.categoryId = categories.id
+        WHERE cabinets.floorPlanId IS NULL
+          AND cabinets.isDeleted = 0
+        ORDER BY cabinets.createdAt DESC
+        """
+    )
+    fun observeUnattached(): Flow<List<CabinetWithCategory>>
+}
+
+/** 户型图上的柜子投影（标记渲染用） */
+data class CabinetOnFloorPlan(
+    val id: Long,
+    val name: String,
+    val coverImagePath: String?,
+    val x: Float,
+    val y: Float,
+)
+
+/** 户型图表 DAO */
+@Dao
+interface FloorPlanDao {
+    /** 插入户型图，返回自增 id */
+    @Insert
+    suspend fun insert(floorPlan: FloorPlanEntity): Long
+
+    /** 更新户型图（重命名） */
+    @Update
+    suspend fun update(floorPlan: FloorPlanEntity)
+
+    /** 删除户型图 */
+    @Delete
+    suspend fun delete(floorPlan: FloorPlanEntity)
+
+    /** 观察全部户型图（列表页用） */
+    @Query("SELECT * FROM floor_plans ORDER BY createdAt DESC")
+    fun observeAll(): Flow<List<FloorPlanEntity>>
+
+    /** 观察单个户型图 */
+    @Query("SELECT * FROM floor_plans WHERE id = :id")
+    fun observeById(id: Long): Flow<FloorPlanEntity?>
+
+    /** 按 id 查询户型图 */
+    @Query("SELECT * FROM floor_plans WHERE id = :id")
+    suspend fun getById(id: Long): FloorPlanEntity?
 }
 
 /** 柜子 + 分类名 + 物品数投影 */

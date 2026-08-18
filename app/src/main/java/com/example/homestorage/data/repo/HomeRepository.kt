@@ -4,9 +4,11 @@ import android.content.Context
 import android.net.Uri
 import androidx.room.withTransaction
 import com.example.homestorage.data.db.CabinetEntity
+import com.example.homestorage.data.db.CabinetOnFloorPlan
 import com.example.homestorage.data.db.CabinetWithCategory
 import com.example.homestorage.data.db.CategoryEntity
 import com.example.homestorage.data.db.CategoryWithCount
+import com.example.homestorage.data.db.FloorPlanEntity
 import com.example.homestorage.data.db.HomeStorageDatabase
 import com.example.homestorage.data.db.ItemEntity
 import com.example.homestorage.data.db.SearchCabinetHit
@@ -69,14 +71,30 @@ class HomeRepository private constructor(private val db: HomeStorageDatabase, pr
         db.cabinetDao().observeByCategory(categoryId)
 
     /**
-     * 新增柜子（可带封面图）
+     * 新增柜子（可带封面图、可选挂载到户型图）
      *
+     * @param name 柜子名称
+     * @param categoryId 分类 id（可空）
+     * @param coverUri 封面图 Uri（可空）
+     * @param floorPlanId 户型图 id（可空，挂载时传入）
+     * @param x 户型图归一化横坐标 0~1
+     * @param y 户型图归一化纵坐标 0~1
      * @return 新柜子 id
      */
-    suspend fun addCabinet(name: String, categoryId: Long?, coverUri: Uri?): Long {
+    suspend fun addCabinet(
+        name: String,
+        categoryId: Long?,
+        coverUri: Uri?,
+        floorPlanId: Long? = null,
+        x: Float = 0.5f,
+        y: Float = 0.5f
+    ): Long {
         val coverPath = coverUri?.let { imageStore.saveFromUri(it, MAX_CABINET_SIZE) }
         return db.cabinetDao().insert(
-            CabinetEntity(name = name, coverImagePath = coverPath, categoryId = categoryId)
+            CabinetEntity(
+                name = name, coverImagePath = coverPath, categoryId = categoryId,
+                floorPlanId = floorPlanId, x = x, y = y
+            )
         )
     }
 
@@ -226,6 +244,76 @@ class HomeRepository private constructor(private val db: HomeStorageDatabase, pr
         db.itemDao().delete(item)
         imageStore.delete(item.imagePath)
     }
+
+    // ---------- 户型图 ----------
+
+    /** 观察全部户型图 */
+    fun observeFloorPlans(): Flow<List<FloorPlanEntity>> = db.floorPlanDao().observeAll()
+
+    /** 观察单个户型图（详情页用） */
+    fun getFloorPlanFlow(id: Long): Flow<FloorPlanEntity?> = db.floorPlanDao().observeById(id)
+
+    /** 按 id 查询户型图 */
+    suspend fun getFloorPlan(id: Long): FloorPlanEntity? = db.floorPlanDao().getById(id)
+
+    /**
+     * 新增户型图（保存图片 + 入库）
+     *
+     * @param name 户型图名称
+     * @param imageUri 图片 Uri
+     * @return 新户型图 id
+     */
+    suspend fun addFloorPlan(name: String, imageUri: Uri): Long {
+        val imagePath = imageStore.saveFromUri(imageUri, MAX_CABINET_SIZE) ?: return -1L
+        return db.floorPlanDao().insert(
+            FloorPlanEntity(name = name, imagePath = imagePath)
+        )
+    }
+
+    /**
+     * 重命名户型图
+     *
+     * @param planId 户型图 id
+     * @param newName 新名称
+     */
+    suspend fun renameFloorPlan(planId: Long, newName: String) {
+        val plan = db.floorPlanDao().getById(planId) ?: return
+        if (newName.isBlank()) return
+        db.floorPlanDao().update(plan.copy(name = newName))
+    }
+
+    /**
+     * 删除户型图：仅解除柜子挂载（柜子保留），物理删除图片
+     *
+     * @param planId 户型图 id
+     */
+    suspend fun deleteFloorPlan(planId: Long) {
+        val plan = db.floorPlanDao().getById(planId) ?: return
+        db.withTransaction {
+            db.cabinetDao().clearFloorPlan(planId)
+            db.floorPlanDao().delete(plan)
+        }
+        imageStore.delete(plan.imagePath)
+    }
+
+    /** 观察户型图上的全部柜子（标记渲染） */
+    fun observeCabinetsByFloorPlan(planId: Long): Flow<List<CabinetOnFloorPlan>> =
+        db.cabinetDao().observeByFloorPlan(planId)
+
+    /** 观察未挂载户型图的柜子（挂载选择列表用） */
+    fun observeUnattachedCabinets(): Flow<List<CabinetWithCategory>> =
+        db.cabinetDao().observeUnattached()
+
+    /**
+     * 挂载已有柜子到户型图指定位置
+     *
+     * @param cabinetId 柜子 id
+     * @param planId 户型图 id
+     * @param x 归一化横坐标 0~1
+     * @param y 归一化纵坐标 0~1
+     */
+    suspend fun attachCabinet(cabinetId: Long, planId: Long, x: Float, y: Float) =
+        db.cabinetDao().attachToFloorPlan(cabinetId, planId, x, y)
 
     // ---------- 搜索 ----------
 

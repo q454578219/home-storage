@@ -70,12 +70,15 @@ private fun Modifier.clickableNoRipple(onClick: () -> Unit): Modifier =
         )
     )
 
-/** 新建柜子页：封面选择（拍照/相册）+ 名称 + 分类 */
+/** 新建柜子页：封面选择（拍照/相册）+ 名称 + 分类（可选挂载到户型图位置） */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateCabinetScreen(
     onBack: () -> Unit,
     onSaved: (Long) -> Unit,
+    floorPlanId: Long? = null,
+    floorPlanX: Float = 0.5f,
+    floorPlanY: Float = 0.5f,
     viewModel: CreateCabinetViewModel = viewModel()
 ) {
     val name by viewModel.name.collectAsState()
@@ -198,7 +201,7 @@ fun CreateCabinetScreen(
                 icon = Icons.Default.Check,
                 enabled = name.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { viewModel.save(coverUri, onSaved) }
+                onClick = { viewModel.save(coverUri, floorPlanId, floorPlanX, floorPlanY, onSaved) }
             )
         }
     }

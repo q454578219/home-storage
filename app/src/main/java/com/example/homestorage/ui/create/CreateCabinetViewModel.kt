@@ -33,13 +33,16 @@ class CreateCabinetViewModel(application: Application) : AndroidViewModel(applic
      * 保存柜子
      *
      * @param coverUri 封面图 Uri（可为 null 不设封面）
+     * @param floorPlanId 户型图 id（可空，挂载到户型图时传入）
+     * @param floorPlanX 户型图归一化横坐标 0~1
+     * @param floorPlanY 户型图归一化纵坐标 0~1
      * @param onSaved 保存成功回调（参数为新柜子 id）
      */
-    fun save(coverUri: Uri?, onSaved: (Long) -> Unit) {
+    fun save(coverUri: Uri?, floorPlanId: Long?, floorPlanX: Float, floorPlanY: Float, onSaved: (Long) -> Unit) {
         val trimmed = name.value.trim()
         if (trimmed.isEmpty()) return
         viewModelScope.launch {
-            val id = repo.addCabinet(trimmed, categoryId.value, coverUri)
+            val id = repo.addCabinet(trimmed, categoryId.value, coverUri, floorPlanId, floorPlanX, floorPlanY)
             onSaved(id)
         }
     }

@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.homestorage.ui.cabinet.CabinetDetailScreen
 import com.example.homestorage.ui.create.CreateCabinetScreen
+import com.example.homestorage.ui.floorplan.FloorPlanDetailScreen
+import com.example.homestorage.ui.floorplan.FloorPlanListScreen
 import com.example.homestorage.ui.home.HomeScreen
 import com.example.homestorage.ui.spot.SpotDetailScreen
 import com.example.homestorage.ui.theme.HomeStorageTheme
@@ -41,11 +43,34 @@ fun AppNavHost() {
                 onOpenItem = { cabinetId, spotId ->
                     navController.navigate("cabinet/$cabinetId?highlightSpot=$spotId")
                 },
-                onOpenCreateCabinet = { navController.navigate("create_cabinet") }
+                onOpenCreateCabinet = { navController.navigate("create_cabinet") },
+                onOpenFloorPlans = { navController.navigate("floorplans") }
             )
         }
-        composable("create_cabinet") {
+        composable(
+            route = "create_cabinet?floorPlanId={floorPlanId}&x={x}&y={y}",
+            arguments = listOf(
+                navArgument("floorPlanId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("x") {
+                    type = NavType.FloatType
+                    defaultValue = 0.5f
+                },
+                navArgument("y") {
+                    type = NavType.FloatType
+                    defaultValue = 0.5f
+                }
+            )
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getLong("floorPlanId")?.takeIf { it > 0 }
+            val x = backStackEntry.arguments?.getFloat("x") ?: 0.5f
+            val y = backStackEntry.arguments?.getFloat("y") ?: 0.5f
             CreateCabinetScreen(
+                floorPlanId = planId,
+                floorPlanX = x,
+                floorPlanY = y,
                 onBack = { navController.popBackStack() },
                 onSaved = { cabinetId ->
                     navController.popBackStack()
@@ -70,6 +95,28 @@ fun AppNavHost() {
                 highlightSpotId = highlightSpotId,
                 onBack = { navController.popBackStack() },
                 onOpenSpot = { spotId -> navController.navigate("spot/$spotId") }
+            )
+        }
+        composable("floorplans") {
+            FloorPlanListScreen(
+                onBack = { navController.popBackStack() },
+                onOpenFloorPlan = { planId -> navController.navigate("floorplan/$planId") }
+            )
+        }
+        composable(
+            route = "floorplan/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getLong("planId") ?: return@composable
+            FloorPlanDetailScreen(
+                planId = planId,
+                onBack = { navController.popBackStack() },
+                onOpenCabinet = { cabinetId -> navController.navigate("cabinet/$cabinetId") },
+                onCreateCabinet = { x, y ->
+                    navController.navigate(
+                        "create_cabinet?floorPlanId=$planId&x=$x&y=$y"
+                    )
+                }
             )
         }
         composable(
